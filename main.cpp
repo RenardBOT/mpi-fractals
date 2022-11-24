@@ -6,8 +6,8 @@
 typedef std::vector<double> vector1D;
 typedef std::vector<std::vector<double>> vector2D;
 
-int width = 1200;
-int height = 900;
+int width = 250;
+int height = 80;
 
 int maxIterations = 1000;
 
@@ -61,7 +61,7 @@ void draw()
 }
 
 int main(int argc, char **argv){
-      /* std::cout << "----- DEBUT SIMULATION : Iterations = " << maxIterations << std::endl;
+      std::cout << "----- DEBUT SIMULATION : Iterations = " << maxIterations << std::endl;
       vector2D vec(height, vector1D(width,0.0));
       for(int y = 0 ; y < height ; y++){
             for(int x = 0 ; x < width ; x++){
@@ -74,8 +74,8 @@ int main(int argc, char **argv){
                         std::cout << "□" ;
             }
             std::cout << std::endl;
-      } */
-      glutInit(&argc, argv);
+      }
+     /*  glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH);
 	glutInitWindowSize(width, height);
 	glutCreateWindow("Truc");	
@@ -86,7 +86,7 @@ int main(int argc, char **argv){
 	//glutReshapeFunc(reshape);
 	//glutKeyboardFunc(keyboardDown);
 	//GUI construction
-	glutMainLoop();
+	glutMainLoop(); */
 	return 0;
       //printVector2D(&vec);
 
