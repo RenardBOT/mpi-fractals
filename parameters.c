@@ -80,3 +80,43 @@ void init_parameters(parameters_t *parameters){
     parameters->range           = M_RANGE;
     parameters->modefract       = M_MODEFRACT;
 }
+
+void init_parameters_calc(parameters_t *parameters, parameters_calc_t *parameters_calc){
+    parameters_calc->step = parameters->range / (parameters->width - 1);
+    parameters_calc->min_re = parameters->origin_re - parameters->range / 2;
+    parameters_calc->max_re = parameters_calc->min_re + parameters_calc->step * (parameters->width - 1);
+    parameters_calc->max_im = parameters->origin_im + parameters->range / 2 ;
+    parameters_calc->min_im = parameters_calc->max_im - parameters_calc->step * (parameters->height - 1);
+}
+
+// -2+0.00444*20=
+
+void print_parameters(parameters_t * parameters){
+    printf(" --- PARAMETRES ---------\n\n");
+    printf("Dimensions : %dpx * %dpx\n",parameters->width,parameters->height);
+    printf("Origine : %f + i*%f\n",parameters->origin_re,parameters->origin_im);
+    printf("Intervalle réel : %f\n",parameters->range);
+    printf("Nombre d'itérations : %d\n",parameters->max_iterations);
+    printf("Taille d'un bloc de données : %d\n\n",parameters->chunks);
+
+    switch(parameters->modefract){
+        case MANDELBROT:
+            printf("ENSEMBLE CHOISI : Mandelbrot\n");
+            break;
+
+        case JULIA:
+            printf("ENSEMBLE CHOISI : Julia\n");
+            break;
+    }
+    printf("-------------\n");
+}
+
+void print_parameters_calc(parameters_calc_t * parameters_calc){
+    printf(" --- PARAMETRES CALCULS ---------\n\n");
+    printf("Pas réel : %f\n",parameters_calc->step);
+    printf("Min réel : %f\n",parameters_calc->min_re);
+    printf("Max réel : %f\n",parameters_calc->max_re);
+    printf("Min imaginaire : %f\n",parameters_calc->min_im);
+    printf("Max imaginaire : %f\n",parameters_calc->max_im);
+    printf("-------------\n");
+}

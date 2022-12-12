@@ -41,6 +41,7 @@ typedef struct complex_t{
 int main(int argc, char **argv);
 void print_parameters(parameters_t * parameters);
 void failure(char * error, int world_rank);
+void test_picture(parameters_t * parameters);
 void write_file(parameters_t * parameters, bitmap_rgb * pixels);
 
 // ---------------------------
@@ -48,17 +49,23 @@ void write_file(parameters_t * parameters, bitmap_rgb * pixels);
 int main(int argc, char** argv)
 {
     parameters_t * parameters   = (parameters_t *)malloc(sizeof(*parameters));
+    parameters_calc_t * parameters_calc = (parameters_calc_t *)malloc(sizeof(*parameters_calc));
     if(parameters == NULL){
         printf("Erreur : Echec de l'allocation de mémoire pour les paramètres\n");
         exit(1);
     }
-    init_parameters(parameters);
-
-    bitmap_rgb * pixels = (bitmap_rgb *)malloc(parameters->width*parameters->height*sizeof(bitmap_rgb));
-    if(pixels == NULL){
-        printf("Erreur : Echec de l'allocation de mémoire pour le tableau pixels\n");
+    if(parameters_calc == NULL){
+        printf("Erreur : Echec de l'allocation de mémoire pour les paramètres de calcul\n");
         exit(1);
     }
+    init_parameters(parameters);
+    init_parameters_calc(parameters,parameters_calc);
+
+    //bitmap_rgb * pixels = (bitmap_rgb *)malloc(parameters->width*parameters->height*sizeof(bitmap_rgb));
+    /* if(pixels == NULL){
+        printf("Erreur : Echec de l'allocation de mémoire pour le tableau pixels\n");
+        exit(1);
+    } */
     
     MPI_Init(NULL, NULL);
 
@@ -70,48 +77,27 @@ int main(int argc, char** argv)
 
     parse_args(argc,argv,parameters,world_rank,world_size);
 
+    
+
     if(world_rank == 0){
+        // declare pixels
+        bitmap_rgb * pixels = (bitmap_rgb *)malloc(parameters->width*parameters->height*sizeof(bitmap_rgb));
+        print_parameters(parameters);
+        print_parameters_calc(parameters_calc);
+
         manager_task(parameters,MPI_COMM_WORLD,pixels);
+        //test_picture(parameters);
+        
     }
     else{
-        worker_task(parameters,MPI_COMM_WORLD);
+        worker_task(parameters,parameters_calc,MPI_COMM_WORLD);
     }
-/* 
-    bitmap_file_header file_header;
-    bitmap_info_header info_header;    
-    if(world_rank == 0){
-        print_parameters(parameters) ;
-        printf("Size of file header : %d\n",(int)sizeof(file_header));
-        printf("Size of info header : %d\n",(int)sizeof(info_header));
-    } */
-/* 
-    // Initialise un tableau de bitmap_rgb de taille width*height et rempli d'un damier de pixels rouges et verts
-    bitmap_rgb * pixels = (bitmap_rgb *)malloc(parameters->width*parameters->height*sizeof(bitmap_rgb));
-    for(int i=0;i<parameters->height;i++){
-        for(int j=0;j<parameters->width;j++){
-            if((i+j)%2 == 0){
-                pixels[i*parameters->width+j].red = 255;
-                pixels[i*parameters->width+j].green = 0;
-                pixels[i*parameters->width+j].blue = 0;
-            }
-            else{ 
-                pixels[i*parameters->width+j].red = 0;
-                pixels[i*parameters->width+j].green = 255;
-                pixels[i*parameters->width+j].blue = 0;
-            }
-        }
-    }
-
-    if(world_rank == 0)
-        write_file(parameters,pixels);
-     */
 
     // Finalize the MPI environment.
     MPI_Finalize();
 
     free(parameters);
-    free(pixels);
-
+    free(parameters_calc);
     return 0;
 
     
@@ -121,30 +107,33 @@ int main(int argc, char** argv)
 
 
     
-void print_parameters(parameters_t * parameters){
-    printf(" --- PARAMETRES ---------\n\n");
-    printf("Dimensions : %dpx * %dpx\n",parameters->width,parameters->height);
-    printf("Origine : %f + i*%f\n",parameters->origin_re,parameters->origin_im);
-    printf("Intervalle réel : %f\n",parameters->range);
-    printf("Nombre d'itérations : %d\n",parameters->max_iterations);
-    printf("Taille d'un bloc de données : %d\n\n",parameters->chunks);
 
-    switch(parameters->modefract){
-        case MANDELBROT:
-            printf("ENSEMBLE CHOISI : Mandelbrot\n");
-            break;
-
-        case JULIA:
-            printf("ENSEMBLE CHOISI : Julia\n");
-            break;
-    }
-    printf("-------------\n");
-}
 
 void failure(char * error, int world_rank){
     if(world_rank == 0)
         printf("\033[91;1mErreur : \033[0m%s\n\nSortie forcée du programme\n",error);
     exit(EXIT_FAILURE);
+};
+
+void test_picture(parameters_t * parameters){
+    // Initialise un tableau de bitmap_rgb de taille width*height et rempli d'un damier de pixels rouges et verts
+    bitmap_rgb * pixels = (bitmap_rgb *)malloc(parameters->width*parameters->height*sizeof(bitmap_rgb));
+    for(int i=0;i<parameters->height;i++){
+        for(int j=0;j<parameters->width;j++){
+            if((i+j)%2 == 0){
+                pixels[i*parameters->width+j].red = 0;
+                pixels[i*parameters->width+j].green = 0;
+                pixels[i*parameters->width+j].blue = 0;
+            }
+            else{ 
+                pixels[i*parameters->width+j].red = 255;
+                pixels[i*parameters->width+j].green = 255;
+                pixels[i*parameters->width+j].blue = 255;
+            }
+        }
+    }
+    write_file(parameters,pixels);
+    free(pixels);
 };
 
 void write_file(parameters_t * parameters, bitmap_rgb * pixels){

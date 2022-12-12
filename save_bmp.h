@@ -35,9 +35,9 @@ typedef struct {
 
 // Structure stockant les couleurs d'un pixel sur 3 octets (Bitmap fonctionne en BGR)
 typedef struct {             
-    int8_t blue;    // Composante bleue sur un octet
-    int8_t green;   // Composante verte sur un octet
-    int8_t red;     // Composante rouge sur un octet
+    uint8_t blue;    // Composante bleue sur un octet
+    uint8_t green;   // Composante verte sur un octet
+    uint8_t red;     // Composante rouge sur un octet
 } bitmap_rgb; 
 
 // Signature des fonctions

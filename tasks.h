@@ -7,6 +7,7 @@
 
 
 int manager_task(parameters_t * parameters, MPI_Comm comm, bitmap_rgb * pixels);
-int worker_task(parameters_t * parameters, MPI_Comm comm);
+int worker_task(parameters_t * parameters, parameters_calc_t * parameters_calc, MPI_Comm comm);
+int iterations_to_rgb(int iterations,int max_iterations,bitmap_rgb * rgb);
 
 #endif /* TASKS_H */

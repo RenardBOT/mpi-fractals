@@ -7,13 +7,13 @@
 #include <string.h>
 
 // Paramètres par défaut
-#define M_WIDTH             1250             // Largeur de l'image en pixels
-#define M_HEIGHT            3080             // Hauteur de l'image en pixels
+#define M_WIDTH             40             // Largeur de l'image en pixels
+#define M_HEIGHT            40             // Hauteur de l'image en pixels
 #define M_MAX_ITERATIONS    500             // Nombre d'itérations nécéssaires pour considérer la suite non-divergente
 #define M_CHUNKS            1               // Nombre de ligne du tableau calculées par un Worker
-#define M_ORIGIN_RE         -.75             // Origine du repère à afficher sur l'axe des réels (milieu de la fenêtre)
+#define M_ORIGIN_RE         0             // Origine du repère à afficher sur l'axe des réels (milieu de la fenêtre)
 #define M_ORIGIN_IM         .0              // Origine du repère à afficher sur l'axe des immaginaires purs (milieu de la fenêtre)
-#define M_RANGE             3
+#define M_RANGE             4
 #define M_MODEFRACT         0               // Choix de la fractale : Julia (non implémenté) ou Mandelbrot
 
 // Paramètres limites
@@ -47,10 +47,22 @@ typedef struct{
     double origin_im;
     double range;
     modefract_t modefract;
-} parameters_t;                                    
+} parameters_t;
+
+// Structure stockant la façon dont les paramètres sont exploités pour les calculs
+typedef struct{
+    double step;
+    double min_re;
+    double max_re;
+    double min_im;
+    double max_im;
+} parameters_calc_t;
 
 void parse_args(int argc, char** argv, parameters_t * parameters, int world_rank, int world_size); 
-void init_parameters(parameters_t * parameters);  
-void failure(char * error, int world_rank);                                              
+void init_parameters(parameters_t * parameters);
+void init_parameters_calc(parameters_t * parameters, parameters_calc_t * parameters_calc);  
+void failure(char * error, int world_rank);
+void print_parameters(parameters_t * parameters);
+void print_parameters_calc(parameters_calc_t * parameters_calc);
 
 #endif /* PARAMETERS_H */

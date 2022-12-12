@@ -1,39 +1,57 @@
+//include std from c
+#include <stdio.h>
+#include <mpi.h>
+
+// struct containing pixel as three int8_t
+typedef struct rgb_t{
+    uint8_t red;
+    uint8_t green;
+    uint8_t blue;
+} rgb_t;
+
 int main(int argc, char const *argv[])
 {
-    int size = 20;
-    //declare an array on the heap
-    int *array1 = (int*)malloc(5 * sizeof(int));  
-    int *array2 = (int*)malloc(5 * sizeof(int));
-    int *array3 = (int*)malloc(5 * sizeof(int));
-    int *array4 = (int*)malloc(5 * sizeof(int));
-
-    // fill array1 with values from 0 to 4
-    for (int i = 0; i < 5; i++)
+    // dynamic array of 12 int from 0 to 360
+    int * array = malloc(12*sizeof(int));
+    for (int i = 0; i < 12; i++)
     {
-        array1[i] = i;
+        array[i] = i*30;
     }
-    // fill array2 with values from 5 to 9
-    for (int i = 0; i < 5; i++)
+    // copy array to an array of 4 rgb_t
+    rgb_t * pixels = malloc(4*sizeof(rgb_t));
+    for (int i = 0; i < 4; i++)
     {
-        array2[i] = i + 5;
-    }
-    // fill array3 with values from 10 to 14
-    for (int i = 0; i < 5; i++)
-    {
-        array3[i] = i + 10;
-    }
-    // fill array4 with values from 15 to 19
-    for (int i = 0; i < 5; i++)
-    {
-        array4[i] = i + 15;
+        pixels[i].red = array[3*i];
+        pixels[i].green = array[3*i+1];
+        pixels[i].blue = array[3*i+2];
     }
 
-    int * array5 = (int*)malloc(20 * sizeof(int));
-    array5[0] = array1;
-    array5[4] = array2;
-    /* code */
-    return 0;
+    // print the array
+    for (int i = 0; i < 4; i++)
+    {
+        printf("pixel %d : %d %d %d\n",i,pixels[i].red,pixels[i].green,pixels[i].blue);
+    }
+
+    return 0;   
 }
-/*
-❝ i can barely figure out anything of substance about you...  ❞
-*/
+//how to compile a file named sandbox.c ?
+//gcc -o sandbox sandbox.c
+
+void test_mpi(){
+    //init MPI
+    MPI_Init(NULL, NULL);
+    //get the number of processes and the rank of the current process
+    int world_size,world_rank;
+    MPI_Comm_size(MPI_COMM_WORLD, &world_size);
+    MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
+
+    // main MPI if statement
+    if (world_rank == 0)
+    {
+        //master process
+        printf("Hello from the master process %d of %d processes\n",world_rank,world_size);
+    }else{
+        //slave process
+        printf("Hello from the slave process %d of %d processes\n",world_rank,world_size);
+    }
+}
