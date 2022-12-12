@@ -1,30 +1,24 @@
-EXT = cpp
-CXX=g++
-CFLAGS=-Wall 
-CFLAGS= 
-LDFLAGS= -lGL -lGLEW -lGLU -lglut  -lm  -llapack -lblas
+TARGET = prog
+LIBS = -lm
+CC = mpicc
+CFLAGS = -g -Wall
 
-#SRC=saisieinteractive.cpp courbe.cpp
-SRC=$(wildcard *.$(EXT))
-OBJ = $(SRC:.$(EXT)=.o)
+.PHONY: default all clean
 
-DEBUBFLAG=-g
+default: $(TARGET)
+all: default
 
-BIN=./
-EXEC=main
+OBJECTS = $(patsubst %.c, %.o, $(wildcard *.c))
+HEADERS = $(wildcard *.h)
 
-all: $(EXEC)
+%.o: %.c $(HEADERS)
+	$(CC) $(CFLAGS) -c $< -o $@
 
-$(EXEC): $(OBJ)
-		$(CXX)  -o $(BIN)$@ $^ $(LDFLAGS)
+.PRECIOUS: $(TARGET) $(OBJECTS)
 
-%.o: %.cpp
-		$(CXX)  -o $@ -c $< $(CFLAGS)
-
+$(TARGET): $(OBJECTS)
+	$(CC) $(OBJECTS) -Wall $(LIBS) -o $@
 
 clean:
-		rm -rf *.o
-
-mrproper: clean
-		rm -rf $(BIN)$(EXEC)
-
+	-rm -f *.o
+	-rm -f $(TARGET)
