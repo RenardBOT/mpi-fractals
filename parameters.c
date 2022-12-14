@@ -85,7 +85,7 @@ void init_parameters_calc(parameters_t *parameters, parameters_calc_t *parameter
     parameters_calc->step = parameters->range / (parameters->width - 1);
     parameters_calc->min_re = parameters->origin_re - parameters->range / 2;
     parameters_calc->max_re = parameters_calc->min_re + parameters_calc->step * (parameters->width - 1);
-    parameters_calc->max_im = parameters->origin_im + parameters->range / 2 ;
+    parameters_calc->max_im = parameters->origin_im + parameters_calc->step * (parameters->height)/2 ;
     parameters_calc->min_im = parameters_calc->max_im - parameters_calc->step * (parameters->height - 1);
 }
 

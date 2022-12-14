@@ -86,7 +86,9 @@ int main(int argc, char** argv)
         print_parameters_calc(parameters_calc);
 
         manager_task(parameters,MPI_COMM_WORLD,pixels);
+        write_file(parameters,pixels);
         //test_picture(parameters);
+        free(pixels);
         
     }
     else{

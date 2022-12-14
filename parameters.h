@@ -7,13 +7,13 @@
 #include <string.h>
 
 // Paramètres par défaut
-#define M_WIDTH             40             // Largeur de l'image en pixels
-#define M_HEIGHT            40             // Hauteur de l'image en pixels
-#define M_MAX_ITERATIONS    500             // Nombre d'itérations nécéssaires pour considérer la suite non-divergente
+#define M_WIDTH             1000             // Largeur de l'image en pixels
+#define M_HEIGHT            1000             // Hauteur de l'image en pixels
+#define M_MAX_ITERATIONS    5000             // Nombre d'itérations nécéssaires pour considérer la suite non-divergente
 #define M_CHUNKS            1               // Nombre de ligne du tableau calculées par un Worker
-#define M_ORIGIN_RE         0             // Origine du repère à afficher sur l'axe des réels (milieu de la fenêtre)
+#define M_ORIGIN_RE         -.75             // Origine du repère à afficher sur l'axe des réels (milieu de la fenêtre)
 #define M_ORIGIN_IM         .0              // Origine du repère à afficher sur l'axe des immaginaires purs (milieu de la fenêtre)
-#define M_RANGE             4
+#define M_RANGE             3            // Intervalle de valeurs à afficher sur l'axe des réels
 #define M_MODEFRACT         0               // Choix de la fractale : Julia (non implémenté) ou Mandelbrot
 
 // Paramètres limites

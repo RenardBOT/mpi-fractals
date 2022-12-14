@@ -65,7 +65,7 @@ void write_bmp(char *filename, bitmap_file_header * output_file_header, bitmap_i
     for ( int i = output_info_header->height_px-1  ;  i >= 0 ; i--){
             int pixelOffset = (((output_info_header->height_px  - i) - 1)*unpaddedRowSize)/3;
             fwrite(&output_pixels[pixelOffset], 1, paddedRowSize, output_file);
-            printf("Index: %d | pixelOffset: %d | Red :%d\n", (output_info_header->height_px  - i) - 1,pixelOffset, output_pixels[pixelOffset].red);
+            //printf("Index: %d | pixelOffset: %d | Red :%d\n", (output_info_header->height_px  - i) - 1,pixelOffset, output_pixels[pixelOffset].red);
 
 
     } 
