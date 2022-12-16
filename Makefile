@@ -1,27 +1,84 @@
-TARGET = prog
-LIBS = -lm
-CC = mpicc
-CFLAGS = -g -Wall
+# CREDITS: Nicholas Hamilton, Scot McPeak, and the Makefile Tutorial
+# Version modifiée du Makefile partagé par Nicholas Hamilton, lui même modifié de Scot McPeak : https://stackoverflow.com/a/27794283
 
-.PHONY: default all clean
+# Compilateur: MPICC
+CC          := mpicc
 
+# Le nom de l'exécutable
+TARGET      := mandelbrot
+
+# Les fichiers sources, les fichiers d'entête, les fichiers objets, les fichiers binaires et les ressources s'il y en a
+SRCDIR      := src
+INCDIR      := inc
+BUILDDIR    := obj
+TARGETDIR   := bin
+RESDIR      := res
+SRCEXT      := c
+DEPEXT      := d
+OBJEXT      := o
+
+# Les options de compilation, les librairies et les dossiers d'inclusion
+CFLAGS      := -Wall -g
+LIB         := -lm
+INC         := -I$(INCDIR) -I/usr/local/include
+INCDEP      := -I$(INCDIR)
+
+# A modifier si besoin d'un exécutable sans ressources
 default: $(TARGET)
-all: default
 
-OBJECTS = $(patsubst %.c, %.o, $(wildcard *.c))
-HEADERS = $(wildcard *.h)
+#---------------------------------------------------------------------------------
+# A NE PAS MODIFIER (sinon tout explose)
+#---------------------------------------------------------------------------------
+SOURCES     := $(shell find $(SRCDIR) -type f -name *.$(SRCEXT))
+OBJECTS     := $(patsubst $(SRCDIR)/%,$(BUILDDIR)/%,$(SOURCES:.$(SRCEXT)=.$(OBJEXT)))
 
-%.o: %.c $(HEADERS)
-	$(CC) $(CFLAGS) -c $< -o $@
+# Make complet
+all: directories $(TARGET)
 
-.PRECIOUS: $(TARGET) $(OBJECTS)
+# Remake
+remake:	cleaner all
 
-$(TARGET): $(OBJECTS)
-	$(CC) $(OBJECTS) -Wall $(LIBS) -o $@
+# Création des dossiers
+directories:
+	@mkdir -p $(TARGETDIR)
+	@mkdir -p $(BUILDDIR)
 
+# Clean des fichiers objets
 clean:
-	-rm -f *.o
-	-rm -f $(TARGET)
+	@$(RM) -rf $(BUILDDIR)
 
-allclean: clean
-	-rm -f *.bmp
+# Full clean
+cleaner:	clean
+	@$(RM) -rf $(TARGETDIR)
+
+# Inclure les informations de dépendance pour les fichiers .o existants
+-include $(OBJECTS:.$(OBJEXT)=.$(DEPEXT))
+
+# Création de l'exécutable
+$(TARGET): $(OBJECTS)
+	$(CC) -o $(TARGETDIR)/$(TARGET) $^ $(LIB)
+
+# Création des fichiers objets
+$(BUILDDIR)/%.$(OBJEXT): $(SRCDIR)/%.$(SRCEXT)
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) $(INC) -c -o $@ $<
+	@$(CC) $(CFLAGS) $(INCDEP) -MM $(SRCDIR)/$*.$(SRCEXT) > $(BUILDDIR)/$*.$(DEPEXT)
+	@cp -f $(BUILDDIR)/$*.$(DEPEXT) $(BUILDDIR)/$*.$(DEPEXT).tmp
+	@sed -e 's|.*:|$(BUILDDIR)/$*.$(OBJEXT):|' < $(BUILDDIR)/$*.$(DEPEXT).tmp > $(BUILDDIR)/$*.$(DEPEXT)
+	@sed -e 's/.*://' -e 's/\\$$//' < $(BUILDDIR)/$*.$(DEPEXT).tmp | fmt -1 | sed -e 's/^ *//' -e 's/$$/:/' >> $(BUILDDIR)/$*.$(DEPEXT)
+	@rm -f $(BUILDDIR)/$*.$(DEPEXT).tmp
+
+# Non-File Targets
+.PHONY: all remake clean cleaner resources
+
+# Specifique au projet
+
+OUTPUTDIR   := output
+
+
+
+cleanoutput:
+	-rm -f $(OUTPUTDIR)/*
+
+allclean: cleanoutput cleaner
+	
