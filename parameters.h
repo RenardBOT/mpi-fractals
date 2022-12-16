@@ -7,14 +7,20 @@
 #include <string.h>
 
 // Paramètres par défaut
-#define M_WIDTH             1000             // Largeur de l'image en pixels
-#define M_HEIGHT            1000             // Hauteur de l'image en pixels
-#define M_MAX_ITERATIONS    5000             // Nombre d'itérations nécéssaires pour considérer la suite non-divergente
+#define M_WIDTH             1000            // Largeur de l'image en pixels
+#define M_HEIGHT            1000            // Hauteur de l'image en pixels
+#define M_MAX_ITERATIONS    250             // Nombre d'itérations nécéssaires pour considérer la suite non-divergente
 #define M_CHUNKS            1               // Nombre de ligne du tableau calculées par un Worker
-#define M_ORIGIN_RE         -.75             // Origine du repère à afficher sur l'axe des réels (milieu de la fenêtre)
+#define M_ORIGIN_RE         -.75            // Origine du repère à afficher sur l'axe des réels (milieu de la fenêtre)
 #define M_ORIGIN_IM         .0              // Origine du repère à afficher sur l'axe des immaginaires purs (milieu de la fenêtre)
-#define M_RANGE             3            // Intervalle de valeurs à afficher sur l'axe des réels
+#define M_RANGE             3               // Intervalle de valeurs à afficher sur l'axe des réels
+#define M_MAX_PALETTE       100             // Limite des couleurs de la palette
 #define M_MODEFRACT         0               // Choix de la fractale : Julia (non implémenté) ou Mandelbrot
+#define M_JULIA_RE          -.8             // Partie réelle du nombre complexe pour la fractale de Julia
+#define M_JULIA_IM          .156            // Partie imaginaire du nombre complexe pour la fractale de Julia
+#define M_PRINT_PARAMETERS  0               // Affichage des paramètres en sortie standard
+#define M_PRINT_HELP        0               // Affichage de l'aide en sortie standard
+
 
 // Paramètres limites
 #define M_MIN_WIDTH         "20"
@@ -22,8 +28,8 @@
 #define M_MIN_HEIGHT        "20"
 #define M_MAX_HEIGHT        "10000"
 
-#define OPTSTR              "w:h:i:c:x:y:m:"   // Liste des arguments acceptés en ligne de commande 
-                                                 // (Width,Height,Iterations,Chunks,Mode,Origin,)
+#define OPTSTR              "w:h:i:c:x:y:r:p:j:k:"   // Liste des arguments acceptés en ligne de commande 
+                                                        // (Width,Height,Iterations,Chunks,Mode,Origin,Mode,Range,Julia,Settings)
 
 // 3 - Déclaration externes
 extern int errno;           // Variable stockant les codes d'erreur utilisé par la librairie standard 
@@ -46,6 +52,10 @@ typedef struct{
     double origin_re;
     double origin_im;
     double range;
+    int max_palette;
+    double julia_re;
+    double julia_im;
+    int print_parameters;
     modefract_t modefract;
 } parameters_t;
 
@@ -64,5 +74,6 @@ void init_parameters_calc(parameters_t * parameters, parameters_calc_t * paramet
 void failure(char * error, int world_rank);
 void print_parameters(parameters_t * parameters);
 void print_parameters_calc(parameters_calc_t * parameters_calc);
+void print_help();
 
 #endif /* PARAMETERS_H */

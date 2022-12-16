@@ -27,14 +27,9 @@ void write_bmp(char *filename, bitmap_file_header * output_file_header, bitmap_i
      FILE *output_file = fopen(filename, "wb+");
     if (!output_file)
     {
-        printf("unable to open file '%s'.\n", filename);
+        printf("Impossible de créer le fichier '%s'.\n", filename);
         exit(0);
     } 
-
-    printf("TEST\n");
-
-    print_file_header(output_file_header);
-    print_info_header(output_info_header);
 
     fwrite(&output_file_header->type, sizeof(output_file_header->type), 1, output_file);
     fwrite(&output_file_header->size, sizeof(output_file_header->size), 1, output_file);
@@ -57,43 +52,10 @@ void write_bmp(char *filename, bitmap_file_header * output_file_header, bitmap_i
     int unpaddedRowSize = output_info_header->width_px*output_info_header->bits_per_pixel/8;
     int paddedRowSize = (unpaddedRowSize + 4) & (~4);
     paddedRowSize = output_info_header->image_size_bytes/output_info_header->height_px;
-    bitmap_rgb* row = (bitmap_rgb*)malloc(paddedRowSize);
-
-    printf("unpaddedRowSize: %d\n", unpaddedRowSize);
-    printf("paddedRowSize: %d\n"    , paddedRowSize);
 
     for ( int i = output_info_header->height_px-1  ;  i >= 0 ; i--){
             int pixelOffset = (((output_info_header->height_px  - i) - 1)*unpaddedRowSize)/3;
             fwrite(&output_pixels[pixelOffset], 1, paddedRowSize, output_file);
-            //printf("Index: %d | pixelOffset: %d | Red :%d\n", (output_info_header->height_px  - i) - 1,pixelOffset, output_pixels[pixelOffset].red);
-
-
     } 
     
 }
-
-void print_file_header(bitmap_file_header *file_header){
-    printf("-----------------------\n");
-    printf("Value of size is: %d\n", file_header->size);
-    printf("Value of reserved is: %d\n", file_header->reserved);
-    printf("Value of offset is: %d\n", file_header->offset);
-
-}
-
-void print_info_header(bitmap_info_header *info_header){
-    printf("-----------------------\n");
-    printf("Value of size is: %d\n", info_header->size);
-    printf("Value of width_px is: %d\n", info_header->width_px);
-    printf("Value of height_px is: %d\n", info_header->height_px);
-    printf("Value of planes is: %d\n", info_header->planes);
-    printf("Value of bits_per_pixel is: %d\n", info_header->bits_per_pixel);
-    printf("Value of compression is: %d\n", info_header->compression);
-    printf("Value of image_size_bytes is: %d\n", info_header->image_size_bytes);
-    printf("Value of x_resolution_ppm is: %d\n", info_header->x_resolution_ppm);
-    printf("Value of y_resolution_ppm is: %d\n", info_header->y_resolution_ppm);
-    printf("Value of num_colors is: %d\n", info_header->num_colors);
-    printf("Value of important_colors is: %d\n", info_header->important_colors);
-
-}
-
-// 129 base 16 to 10 = 

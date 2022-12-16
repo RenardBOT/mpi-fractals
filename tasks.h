@@ -4,11 +4,12 @@
 #include <mpi.h>
 #include "parameters.h"
 #include "save_bmp.h"
+#include "palette.h"
 
 
-int manager_task(parameters_t * parameters, MPI_Comm comm, bitmap_rgb * pixels);
-int worker_task(parameters_t * parameters, parameters_calc_t * parameters_calc, MPI_Comm comm);
-int iterations_to_rgb(int iterations,int max_iterations,bitmap_rgb * rgb);
+void manager_task(parameters_t * parameters, MPI_Comm comm, bitmap_rgb * pixels);
+void worker_task(parameters_t * parameters, parameters_calc_t * parameters_calc, MPI_Comm comm);
 int mandelbrot(double real, double imaginary, int max_iterations);
+int julia(double real, double imaginary, int max_iterations, double c_real, double c_imaginary);
 
 #endif /* TASKS_H */

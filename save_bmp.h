@@ -42,7 +42,5 @@ typedef struct {
 
 // Signature des fonctions
 void write_bmp(char * filename, bitmap_file_header * output_file_header, bitmap_info_header*  output_info_header, bitmap_rgb * output_pixels);
-void print_file_header(bitmap_file_header *file_header);
-void print_info_header(bitmap_info_header *info_header);
 
 #endif /* SAVE_BMP_H */

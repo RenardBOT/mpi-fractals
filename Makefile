@@ -22,4 +22,6 @@ $(TARGET): $(OBJECTS)
 clean:
 	-rm -f *.o
 	-rm -f $(TARGET)
+
+allclean: clean
 	-rm -f *.bmp

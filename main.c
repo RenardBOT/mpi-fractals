@@ -1,4 +1,5 @@
-// 1 - Déclaration des librairies
+// Déclaration des entêtes
+
 #include <mpi.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -9,42 +10,16 @@
 #include "tasks.h"
 
 
-// 2 - Déclaration des constantes
+// Signatures des fonctions
 
-
-
-
-
-// 4 - Typedefs
-
-
-
-// Structure stockant la couleur d'un pixel
-typedef struct rgb_t{
-    double red;
-    double green;
-    double blue;
-} rgb_t;
-// Structure stockant un nombre complexe (real + i*imaginary)
-typedef struct complex_t{
-    double real;
-    double imaginary;
-} complex_t;
-
-
-
-// 6 - Variables globales
-
-
-
-// 7 - Signatures des fonctions
 int main(int argc, char **argv);
 void print_parameters(parameters_t * parameters);
 void failure(char * error, int world_rank);
-void test_picture(parameters_t * parameters);
+void warning(char * warning, int world_rank);
 void write_file(parameters_t * parameters, bitmap_rgb * pixels);
 
-// ---------------------------
+
+// Déclaration des fonctions
 
 int main(int argc, char** argv)
 {
@@ -58,14 +33,7 @@ int main(int argc, char** argv)
         printf("Erreur : Echec de l'allocation de mémoire pour les paramètres de calcul\n");
         exit(1);
     }
-    init_parameters(parameters);
-    init_parameters_calc(parameters,parameters_calc);
 
-    //bitmap_rgb * pixels = (bitmap_rgb *)malloc(parameters->width*parameters->height*sizeof(bitmap_rgb));
-    /* if(pixels == NULL){
-        printf("Erreur : Echec de l'allocation de mémoire pour le tableau pixels\n");
-        exit(1);
-    } */
     
     MPI_Init(NULL, NULL);
 
@@ -75,7 +43,11 @@ int main(int argc, char** argv)
     MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);         // Rang de la tâche
     MPI_Get_processor_name(processor_name, &name_len);  // Nom et taille du nom du noeud
 
+    init_parameters(parameters);
     parse_args(argc,argv,parameters,world_rank,world_size);
+    init_parameters_calc(parameters,parameters_calc);
+
+    
 
     
 
@@ -107,14 +79,17 @@ int main(int argc, char** argv)
 
 // 8 - Déclaration des fonctions 
 
-
-    
-
-
+// Affiche un message d'erreur en rouge si le rang de la tâche est 0
 void failure(char * error, int world_rank){
     if(world_rank == 0)
         printf("\033[91;1mErreur : \033[0m%s\n\nSortie forcée du programme\n",error);
     exit(EXIT_FAILURE);
+};
+
+// Affiche un message d'avertissement en jaune si le rang de la tâche est 0
+void warning(char * warning, int world_rank){
+    if(world_rank == 0)
+        printf("\033[93;1mAttention : \033[0m%s\n",warning); 
 };
 
 void test_picture(parameters_t * parameters){
@@ -147,8 +122,6 @@ void write_file(parameters_t * parameters, bitmap_rgb * pixels){
     int line_size_bytes = parameters->width*sizeof(bitmap_rgb);
     if(line_size_bytes%4 != 0)
         line_size_bytes += 4 - line_size_bytes%4;
-
-    printf("Taille d'une ligne : %d\n",line_size_bytes);
 
     file_header.type = 0x4D42;
     file_header.size = sizeof(file_header) + sizeof(info_header) + line_size_bytes*parameters->height;

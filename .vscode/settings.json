@@ -60,6 +60,8 @@
         "thread": "c",
         "cinttypes": "c",
         "typeinfo": "c",
-        "semaphore": "c"
+        "semaphore": "c",
+        "mpi.h": "c",
+        "parameters.h": "c"
     }
 }
