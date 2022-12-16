@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <mpi.h>
 
 // Structures stockant l'entête d'un fichier BMP https://upload.wikimedia.org/wikipedia/commons/7/75/BMPfileFormat.svg
 // L'entête fait 54 octets

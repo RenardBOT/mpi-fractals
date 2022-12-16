@@ -2,8 +2,6 @@
 
 void manager_task(parameters_t *parameters, MPI_Comm comm, bitmap_rgb *pixels){
 
-    
-
     // Récupère les variables du commutateur
     int world_size,world_rank,name_len;
     char processor_name[MPI_MAX_PROCESSOR_NAME];
@@ -12,7 +10,8 @@ void manager_task(parameters_t *parameters, MPI_Comm comm, bitmap_rgb *pixels){
     MPI_Get_processor_name(processor_name, &name_len);  // Nom et taille du nom du noeud
 
     // Le manager annonce sa présence et attend que les autres tâches soient prêtes
-    printf("[ ] \033[1mManager :\033[0m Tache %d sur %d démarrée sur le noeud %s\n", world_rank, world_size, processor_name);
+    if(parameters->verbose)
+        printf("[ ] \033[1mManager :\033[0m Tache %d sur %d démarrée sur le noeud %s\n", world_rank, world_size, processor_name);
     MPI_Barrier(comm);
 
     int first_row = 0;                  // Indice de la ligne à traiter par les workers 
@@ -28,10 +27,11 @@ void manager_task(parameters_t *parameters, MPI_Comm comm, bitmap_rgb *pixels){
     int *received_data = (int *)malloc(1+(range)*parameters->width*3*sizeof(int));  
     if(received_data == NULL){
         printf("Erreur : Echec de l'allocation de mémoire pour les données reçues\n");
-        exit(1);
+        MPI_Finalize();
+        exit(EXIT_FAILURE);
     }
 
-    int starting_row_received;                             // Indice de la ligne reçue et source du message
+    int starting_row_received;                                      // Indice de la ligne reçue et source du message
     int amount_received = 0;                                        // Nombre de lignes reçues par le manager (pour savoir quand il a fini)
     int chunks_to_receive = parameters->height/parameters->chunks;  // Nombre de lignes à recevoir
     MPI_Status status;                                              // Status du message reçu
@@ -52,31 +52,32 @@ void manager_task(parameters_t *parameters, MPI_Comm comm, bitmap_rgb *pixels){
             }
         }
         
-        // S'il reste des lignes à traiter, on envoie au worker qui vient de finir (au boulot!)
+        // S'il reste des lignes à traiter, envoi au worker qui vient de finir (au boulot!)
         if(first_row < parameters->height){
             MPI_Send(&first_row, 1, MPI_INT, status.MPI_SOURCE, 0, comm);
             first_row += range; // Incrémenter la ligne à traiter
         }
 
         // Affichage d'une barre de progression en fonction du pourcentage de données reçues
-        printf("[ ] \033[1mManager :\033[0m Avancement de la réception [");
-        for(int i = 0; i < (int) (amount_received*100.0/chunks_to_receive)/2; i++){
-            printf("=");
+        if(parameters->verbose){
+            printf("[ ] \033[1mManager :\033[0m Réception . . . [");
+            for(int i = 0; i < (int) (amount_received*100.0/chunks_to_receive)/2; i++){
+                printf("=");
+            }
+            for(int i = 0; i < 50-(int) (amount_received*100.0/chunks_to_receive)/2; i++){
+                printf(" ");
+            }
+            printf("] %d%%\r",(int) (amount_received*100.0/chunks_to_receive));
         }
-        for(int i = 0; i < 50-(int) (amount_received*100.0/chunks_to_receive)/2; i++){
-            printf(" ");
-        }
-        printf("]\r");
-
-
     }
-    printf("\n");
-    printf("[ ] \033[1mManager :\033[0m 100%% des données reçues\n");
 
     // Le manager a fini de recevoir les données
-    printf("[ ] \033[1mManager :\033[0m Toutes les données ont été reçues!\n");
+    if(parameters->verbose){
+        printf("\n");
+        printf("[ ] \033[1mManager :\033[0m Toutes les données ont été reçues!\n");
+    }
 
-    // On envoie -1 à tous les workers pour les arrêter
+    // Envoi de -1 à tous les workers pour les arrêter
     int endval = -1;
     for(int i = 1; i < world_size; i++){
         MPI_Send(&endval, 1, MPI_INT, i, 0, comm);
@@ -86,7 +87,8 @@ void manager_task(parameters_t *parameters, MPI_Comm comm, bitmap_rgb *pixels){
 
     // Barrière permettant au manager d'attendre que les workers aient bien reçu le message d'arrêt
     MPI_Barrier(comm);
-    printf("[ ] \033[1mManager :\033[0m Tous les workers sont arrêtés, début de la phase d'écriture du fichier\n");
+    if(parameters->verbose)
+        printf("[ ] \033[1mManager :\033[0m Tous les workers sont arrêtés, début de la phase d'écriture du fichier\n");
 
     
 }
@@ -101,7 +103,8 @@ void worker_task(parameters_t * parameters, parameters_calc_t * parameters_calc,
     MPI_Get_processor_name(processor_name, &name_len);  // Nom et taille du nom du noeud
 
     // Le worker annonce sa présence et attend que les autres tâches soient prêtes
-    printf("< >\033[1m Worker  :\033[0m Tache %d sur %d démarrée sur le noeud %s\n", world_rank, world_size, processor_name);
+    if(parameters->verbose)
+        printf("< >\033[1m Worker  :\033[0m Tache %d sur %d démarrée sur le noeud %s\n", world_rank, world_size, processor_name);
     MPI_Barrier( comm );
 
     int iterations = 0;
@@ -111,14 +114,16 @@ void worker_task(parameters_t * parameters, parameters_calc_t * parameters_calc,
     int * send_data = (int *)malloc(1+range*parameters->width*3*sizeof(int)); 
     if(send_data == NULL){
         printf("Erreur : Echec de l'allocation de mémoire pour les données reçues par le worker %d\n",world_rank);
-        exit(1);
+        MPI_Finalize();
+        exit(EXIT_FAILURE);
     }
 
     // Allocation de la mémoire pour contenir les valeurs RGB des pixels et vérification de l'allocation
     bitmap_rgb * rgb = malloc(sizeof(bitmap_rgb)); 
     if(rgb == NULL){
         printf("Erreur : Echec de l'allocation de mémoire pour les données RGB du worker %d\n",world_rank);
-        exit(1);
+        MPI_Finalize();
+        exit(EXIT_FAILURE);
     }
 
     while(1){
@@ -137,24 +142,29 @@ void worker_task(parameters_t * parameters, parameters_calc_t * parameters_calc,
 
         // Remplissage du tableau de pixels avec les valeurs de chaque pixel de la ligne starting_row à starting_row+range
         for(int i = 0; i < range; i++){
-            double imaginary = parameters_calc->max_im - (i+starting_row) * parameters_calc->step;
+            long double imaginary = parameters_calc->max_im - (i+starting_row) * parameters_calc->step;
             for(int j = 0; j < parameters->width; j++){
-                // On calcule les coordonnées du pixel
-                double real = parameters_calc->min_re + j * parameters_calc->step;
+                // Calcul des coordonnées du pixel
+                long double real = parameters_calc->min_re + j * parameters_calc->step;
 
-                // On calcule le nombre d'itérations en fonction du mode de fractale (Mandelbrot ou Julia)
+                // Calcul du nombre d'itérations en fonction du mode de fractale (Mandelbrot ou Julia)
                 if(parameters->modefract == MANDELBROT)
                     iterations = mandelbrot(real,imaginary,parameters->max_iterations);
-                else
+                else if(parameters->modefract == JULIA)
                     iterations = julia(real,imaginary,parameters->max_iterations,parameters->julia_re,parameters->julia_im);
+                else
+                    iterations = burning_ship(real,imaginary,parameters->max_iterations);
 
-                // On calcule les valeurs RGB en fonction du nombre d'itérations (noir si max_iterations atteint)
+
+                // Calcul des valeurs RGB en fonction du nombre d'itérations (noir si max_iterations atteint)
                 if(iterations == parameters->max_iterations){
                     rgb->red = 0;
                     rgb->green = 0;
                     rgb->blue = 0;
                 }
                 else{
+                    // Mise à l'échelle du nombre d'itérations pour qu'il soit compris entre 0 et 1, 
+                    // puis conversion en valeurs RGB
                     hue2rgb((float)(iterations%parameters->max_palette)/parameters->max_palette,rgb);
                 }
 
@@ -174,32 +184,8 @@ void worker_task(parameters_t * parameters, parameters_calc_t * parameters_calc,
     free(rgb);
 
     // Barrière permettant au worker d'attendre que le manager ait bien reçu le message d'arrêt
+    if(parameters->verbose)
+        printf("< >\033[1m Worker  :\033[0m Tâche %d arrêtée\n",world_rank);
     MPI_Barrier(comm);
-    printf("< >\033[1m Worker  :\033[0m Tâche %d arrêtée\n",world_rank);
-}
-
-int mandelbrot(double real, double imaginary, int max_iterations){
-    double z_real = 0;
-    double z_imaginary = 0;
-    int iterations = 0;
-    while(z_real*z_real + z_imaginary*z_imaginary < 4 && iterations < max_iterations){
-        double z_real_temp = z_real*z_real - z_imaginary*z_imaginary + real;
-        z_imaginary = 2*z_real*z_imaginary + imaginary;
-        z_real = z_real_temp;
-        iterations++;
-    }
-    return iterations;
-}
-
-int julia(double real, double imaginary, int max_iterations, double c_real, double c_imaginary){
-    double z_real = real;
-    double z_imaginary = imaginary;
-    int iterations = 0;
-    while(z_real*z_real + z_imaginary*z_imaginary < 4 && iterations < max_iterations){
-        double z_real_temp = z_real*z_real - z_imaginary*z_imaginary + c_real;
-        z_imaginary = 2*z_real*z_imaginary + c_imaginary;
-        z_real = z_real_temp;
-        iterations++;
-    }
-    return iterations;
+    
 }

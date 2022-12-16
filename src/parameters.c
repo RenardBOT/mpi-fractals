@@ -17,14 +17,28 @@ void parse_args(int argc, char** argv, parameters_t * parameters, int world_rank
 
     // Drapeaux à lever quand des longs arguments sont croisés (help, settings, etc...)
     int flag_help = 0;
-    int flag_settings = 0;
+    int flag_verbose = 0;
     int flag_julia = 0;
+    int flag_bship = 0;
     struct option longopts[] = {
-    { "help",    no_argument, &flag_help,    1   },
-    { "settings",no_argument, &flag_settings,1   },
-    { "julia",   no_argument, &flag_julia,   1   },
+    { "help",    no_argument,       &flag_help,     1   },
+    { "verbose", no_argument,       &flag_verbose,  1   },
+    { "julia",   no_argument,       &flag_julia,    1   },
+    { "bship",   no_argument,       &flag_bship,    1   },
+    { "file",    optional_argument, NULL,           'f' },
+    { "width",   required_argument, NULL,           'w' },
+    { "height",  required_argument, NULL,           'h' },
+    { "iter",    required_argument, NULL,           'i' },
+    { "chunks",  required_argument, NULL,           'c' },
+    { "x",       required_argument, NULL,           'x' },
+    { "y",       required_argument, NULL,           'y' },
+    { "juliaR",  optional_argument, NULL,           'j' },
+    { "juliaI",  required_argument, NULL,           'k' },
+    { "range",   required_argument, NULL,           'r' },
+    { "palette", required_argument, NULL,           'p' },
     { 0, 0, 0, 0 }
     };
+    int option_index = 0;
     int opt;
     opterr = 0;
 
@@ -32,7 +46,7 @@ void parse_args(int argc, char** argv, parameters_t * parameters, int world_rank
     int argint;
     
 
-    while ((opt = getopt_long(argc, argv, OPTSTR,longopts,NULL)) != EOF)
+    while ((opt = getopt_long(argc, argv, OPTSTR,longopts,&option_index)) != EOF)
        switch(opt) {
 
             // Traitement des valeurs entières positives
@@ -121,20 +135,33 @@ void parse_args(int argc, char** argv, parameters_t * parameters, int world_rank
                     break;
                 } 
 
-            // Traitement des booléens
-            case 's':
-                parameters->print_parameters = 1;
+            // Traitement des strings
+            case 'f':
+                printf("File : %s\n",optarg);
+                char *filename = optarg;
+                // Verification que l'agument est un nom de fichier valide
+                if (filename == NULL) {
+                    failure("Option -f doit être suivi d'un nom de fichier",world_rank);
+                }
+                parameters->filename = optarg;
                 break;
     }
     if(flag_help == 1){
         print_help();
-        exit(0);
+        MPI_Finalize();
+        exit(EXIT_SUCCESS);
     }
-    if(flag_settings == 1){
-        parameters->print_parameters = 1;
+    if(flag_verbose == 1){
+        parameters->verbose = 1;
+    }
+    if(flag_julia == 1 && flag_bship == 1){
+        failure("Les options --julia et --bship sont mutuellement exclusives",world_rank);
     }
     if(flag_julia == 1){
         parameters->modefract = JULIA;
+    }
+    if(flag_bship == 1){
+        parameters->modefract = BURNINGSHIP;
     }
 
 }
@@ -152,7 +179,8 @@ void init_parameters(parameters_t *parameters){
     parameters->julia_im        = M_JULIA_IM;
     parameters->max_palette     = M_MAX_PALETTE;
     parameters->modefract       = M_MODEFRACT;
-    parameters->print_parameters= M_PRINT_PARAMETERS;
+    parameters->verbose         = M_VERBOSE;
+    parameters->filename        = M_FILENAME;
 }
 
 // Calculs en amont des valeurs utilisées plusieurs fois par les workers 
@@ -168,8 +196,8 @@ void init_parameters_calc(parameters_t *parameters, parameters_calc_t *parameter
 void print_parameters(parameters_t * parameters){
     printf(" --- PARAMETRES ---------\n\n");
     printf("Dimensions : %dpx * %dpx\n",parameters->width,parameters->height);
-    printf("Origine : %f + i*%f\n",parameters->origin_re,parameters->origin_im);
-    printf("Intervalle réel : %f\n",parameters->range);
+    printf("Origine : %Lf + i*%Lf\n",parameters->origin_re,parameters->origin_im);
+    printf("Intervalle réel : %Lf\n",parameters->range);
     printf("Nombre d'itérations : %d\n",parameters->max_iterations);
     printf("Taille d'un bloc de données : %d\n\n",parameters->chunks);
     printf("Nombre de couleurs : %d\n",parameters->max_palette);
@@ -181,19 +209,24 @@ void print_parameters(parameters_t * parameters){
 
         case JULIA:
             printf("ENSEMBLE CHOISI : Julia\n");
-            printf("Constante de Julia : %f + i*%f\n",parameters->julia_re,parameters->julia_im);
+            printf("Constante de Julia : %Lf + i*%Lf\n",parameters->julia_re,parameters->julia_im);
+            break;
+
+        case BURNINGSHIP:
+            printf("ENSEMBLE CHOISI : Burning Ship\n");
             break;
     }
     printf("\n\n");
 }
 
 void print_parameters_calc(parameters_calc_t * parameters_calc){
-    printf(" --- PARAMETRES CALCULS ---------\n\n");
-    printf("Pas réel : %f\n",parameters_calc->step);
-    printf("Min réel : %f\n",parameters_calc->min_re);
-    printf("Max réel : %f\n",parameters_calc->max_re);
-    printf("Min imaginaire : %f\n",parameters_calc->min_im);
-    printf("Max imaginaire : %f\n",parameters_calc->max_im);
+    printf("   .____________________.\n");
+    printf("___| PARAMETRES CALCULS |__________\n\n");
+    printf("| Pas réel : %f\n",parameters_calc->step);
+    printf("| Min réel : %f\n",parameters_calc->min_re);
+    printf("| Max réel : %f\n",parameters_calc->max_re);
+    printf("| Min imaginaire : %f\n",parameters_calc->min_im);
+    printf("| Max imaginaire : %f\n",parameters_calc->max_im);
     printf("\n\n");
 }
 
@@ -203,20 +236,36 @@ void print_bold(char *str){
 }
 void print_help(){
     printf(" --- AIDE ---------\n\n");
-    printf("Utilisation : ./fractale [OPTIONS]\n\n");
+    printf("Utilisation : mpiexec -np <nb_noeuds> ./fractale [OPTIONS]\n\n");
+
     printf("OPTIONS :\n");
     printf("\033[1m--help :\033[0m Affiche l'aide\n");
-    printf("\033[1m--settings :\033[0m Affiche les paramètres\n");
-    printf("\033[1m-w :\033[0m Largeur de l'image (en pixels)\n");
-    printf("\033[1m-h :\033[0m Hauteur de l'image (en pixels)\n");
+    printf("\033[1m--verbose :\033[0m Affiche le déroulement du programme et les paramètres choisis\n");
+    printf("\033[1m--julia :\033[0m Affiche les fractales de Julia\n");
+    printf("\033[1m--bship :\033[0m Affiche la fractale Burning Ship\n");
+    printf("\033[1m--file=<filename> :\033[0m Enregistre l'image dans le fichier <filename>.bmp du répertoire output\n");
+    printf("\033[1m-w -h :\033[0m Résolution de l'image w*h\n");
     printf("\033[1m-i :\033[0m Nombre d'itérations pour considérer la suite divergente\n");
-    printf("\033[1m-c :\033[0m Taille d'un bloc de données, c'est à dire le nombre de l'image à traiter d'un coup pour un worker\n");
+    printf("\033[1m-c :\033[0m Taille d'un bloc de données, c'est à dire le nombre de lignes de l'image à traiter d'un coup pour un worker\n");
     printf("\033[1m-r :\033[0m Intervalle de l'espace solution sur l'axe de réels (niveau de zoom)\n");
-    printf("\033[1m-o :\033[0m Origine (x + i*y)\n");
-    printf("\033[1m-m :\033[0m Mode de fractale (0/MANDELBROT, 1/JULIA)\n");
-    printf("\033[1m-j :\033[0m Constante de Julia (x + i*y)\n");
-    printf("\033[1m-p :\033[0m Nombre de couleurs\n");
-    printf("\033[1m-s :\033[0m Affiche les paramètres\n");
+    printf("\033[1m-x -y :\033[0m Origine complexe (x + i*y)\n");
+    printf("\033[1m-X -Y :\033[0m Constante de Julia (x + i*y)\n");
+    printf("\033[1m-p :\033[0m Nombre de couleurs, largeur de la palette\n");
+
+    printf("VALEURS PAR DEFAUT :\n");
+    printf("\033[1m--help :\033[0m 0\n");
+    printf("\033[1m--verbose :\033[0m 0\n");
+    printf("\033[1m--julia :\033[0m 0\n");
+    printf("\033[1m--bship :\033[0m 0\n");
+    printf("\033[1m--file=<filename> :\033[0m <julia|mandelbrot|bship>_timestamp.bmp\n");
+    printf("\033[1m-w -h :\033[0m %dpx * %dpx\n",M_WIDTH,M_HEIGHT);
+    printf("\033[1m-i :\033[0m %d\n",M_MAX_ITERATIONS);
+    printf("\033[1m-c :\033[0m %d\n",M_CHUNKS);
+    printf("\033[1m-r :\033[0m %d\n",M_RANGE);
+    printf("\033[1m-x -y :\033[0m %f + i*%f\n",M_ORIGIN_RE,M_ORIGIN_IM);
+    printf("\033[1m-X -Y :\033[0m %f + i*%f\n",M_JULIA_RE,M_JULIA_IM);
+    printf("\033[1m-p :\033[0m %d\n",M_MAX_PALETTE);
+
 
     
     printf("\n\n");
