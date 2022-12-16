@@ -1,7 +1,0 @@
-# ignore content of output and obj folders
-
-.vscode/
-output/*
-obj/
-.gitignore
-
