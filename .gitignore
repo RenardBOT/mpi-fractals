@@ -1,0 +1,6 @@
+# ignore .vscode
+ignore .vscode/
+# ignore content of output and obj folders
+ignore output/*
+ignore obj/
+
