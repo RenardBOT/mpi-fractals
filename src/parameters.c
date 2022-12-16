@@ -26,16 +26,6 @@ void parse_args(int argc, char** argv, parameters_t * parameters, int world_rank
     { "julia",   no_argument,       &flag_julia,    1   },
     { "bship",   no_argument,       &flag_bship,    1   },
     { "file",    optional_argument, NULL,           'f' },
-    { "width",   required_argument, NULL,           'w' },
-    { "height",  required_argument, NULL,           'h' },
-    { "iter",    required_argument, NULL,           'i' },
-    { "chunks",  required_argument, NULL,           'c' },
-    { "x",       required_argument, NULL,           'x' },
-    { "y",       required_argument, NULL,           'y' },
-    { "juliaR",  optional_argument, NULL,           'j' },
-    { "juliaI",  required_argument, NULL,           'k' },
-    { "range",   required_argument, NULL,           'r' },
-    { "palette", required_argument, NULL,           'p' },
     { 0, 0, 0, 0 }
     };
     int option_index = 0;
@@ -125,12 +115,12 @@ void parse_args(int argc, char** argv, parameters_t * parameters, int world_rank
                     break;
                 } else
 
-                if(opt == 'j')  {  
+                if(opt == 'X')  {  
                     parameters->julia_re = argfloat;
                     break;
                 } else
 
-                if(opt == 'k')  {  
+                if(opt == 'Y')  {  
                     parameters->julia_im = -argfloat; // Inversion de l'axe des ordonnées car les images BMP scannent de bas en haut
                     break;
                 } 
@@ -240,7 +230,7 @@ void print_help(){
 
     printf("OPTIONS :\n");
     printf("\033[1m--help :\033[0m Affiche l'aide\n");
-    printf("\033[1m--verbose :\033[0m Affiche le déroulement du programme et les paramètres choisis\n");
+    printf("\033[1m--verbose :\033[0m Affiche le déroulement du programme, temps d'execution et les paramètres choisis\n");
     printf("\033[1m--julia :\033[0m Affiche les fractales de Julia\n");
     printf("\033[1m--bship :\033[0m Affiche la fractale Burning Ship\n");
     printf("\033[1m--file=<filename> :\033[0m Enregistre l'image dans le fichier <filename>.bmp du répertoire output\n");

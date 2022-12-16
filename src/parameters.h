@@ -30,8 +30,9 @@
 #define M_MIN_HEIGHT        "20"            // Hauteur minimale de l'image en pixels
 #define M_MAX_HEIGHT        "20000"         // Hauteur maximale de l'image en pixels
 
-#define OPTSTR              "w:h:i:c:x:y:r:p:j:k:f:"   // Liste des arguments acceptés en ligne de commande 
-                                                        // (Width,Height,Iterations,Chunks,Mode,Origin,Mode,Range,Julia,File)
+#define OPTSTR              "w:h:i:c:x:y:r:p:X:Y:f:"    // Liste des arguments acceptés en ligne de commande 
+                                                        // (Width,Height,Iterations,Chunks,Origin x y,Range, Palette max
+                                                        //  ,Julia X Y,File)
 
 // 3 - Déclaration externes
 extern int errno;           // Variable stockant les codes d'erreur utilisé par la librairie standard 
