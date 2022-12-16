@@ -62,6 +62,8 @@
         "typeinfo": "c",
         "semaphore": "c",
         "mpi.h": "c",
-        "parameters.h": "c"
+        "parameters.h": "c",
+        "palette.h": "c",
+        "fractals.h": "c"
     }
 }
