@@ -17,6 +17,10 @@ SRCEXT      := c
 DEPEXT      := d
 OBJEXT      := o
 
+# Specifique au projet
+
+OUTPUTDIR   := output
+
 # Les options de compilation, les librairies et les dossiers d'inclusion
 CFLAGS      := -Wall -g
 LIB         := -lm
@@ -42,6 +46,7 @@ remake:	cleaner all
 directories:
 	@mkdir -p $(TARGETDIR)
 	@mkdir -p $(BUILDDIR)
+	@mkdir -p $(OUTPUTDIR)
 
 # Clean des fichiers objets
 clean:
@@ -71,14 +76,8 @@ $(BUILDDIR)/%.$(OBJEXT): $(SRCDIR)/%.$(SRCEXT)
 # Non-File Targets
 .PHONY: all remake clean cleaner resources
 
-# Specifique au projet
-
-OUTPUTDIR   := output
-
-
-
 cleanoutput:
-	-rm -f $(OUTPUTDIR)/*
+	-rm -r $(OUTPUTDIR)
 
 allclean: cleanoutput cleaner
 	
