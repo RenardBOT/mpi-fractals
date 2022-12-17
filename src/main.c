@@ -160,7 +160,7 @@ void write_file(parameters_t * parameters, bitmap_rgb * pixels){
 
     char filename[100];
     // Si parameters->filename est "default", on génère un nom de fichier par défaut
-    if(strcmp(parameters->filename,"default") == 0){
+    if(strcmp(parameters->filename,"default") == 0||strcmp(parameters->filename,"") == 0 ){
         // On récupère le mode de fractale (0 pour mandelbrot, 1 pour julia, 2 pour burningship
         char * modefract;
         if(parameters->modefract == 0)
@@ -180,6 +180,12 @@ void write_file(parameters_t * parameters, bitmap_rgb * pixels){
     }else{
         // Sinon, on utilise le nom de fichier donné par l'utilisateur
         sprintf(filename,"output/%s.bmp",parameters->filename);
+    }
+
+    // Pour s'assurer du cas ou l'utilisateur rentre un mauvais nom de fichier
+    // Si le nom est invalide dans tous les cas on l'appelle default_output.bmp
+    if(strcmp(filename,"") == 0){
+        strcpy(filename,"output/default_output.bmp");
     }
 
     if(parameters->verbose)

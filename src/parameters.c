@@ -191,6 +191,7 @@ void print_parameters(parameters_t * parameters){
     printf("Nombre d'itérations : %d\n",parameters->max_iterations);
     printf("Taille d'un bloc de données : %d\n\n",parameters->chunks);
     printf("Nombre de couleurs : %d\n",parameters->max_palette);
+    printf("Nom du fichier : %s\n",parameters->filename);
 
     switch(parameters->modefract){
         case MANDELBROT:

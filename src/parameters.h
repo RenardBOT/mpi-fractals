@@ -26,9 +26,9 @@
 
 // Paramètres limites
 #define M_MIN_WIDTH         "20"            // Largeur minimale de l'image en pixels
-#define M_MAX_WIDTH         "20000"         // Largeur maximale de l'image en pixels
+#define M_MAX_WIDTH         "200000"        // Largeur maximale de l'image en pixels
 #define M_MIN_HEIGHT        "20"            // Hauteur minimale de l'image en pixels
-#define M_MAX_HEIGHT        "20000"         // Hauteur maximale de l'image en pixels
+#define M_MAX_HEIGHT        "200000"        // Hauteur maximale de l'image en pixels
 
 #define OPTSTR              "w:h:i:c:x:y:r:p:X:Y:f:"    // Liste des arguments acceptés en ligne de commande 
                                                         // (Width,Height,Iterations,Chunks,Origin x y,Range, Palette max

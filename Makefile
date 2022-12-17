@@ -77,7 +77,7 @@ $(BUILDDIR)/%.$(OBJEXT): $(SRCDIR)/%.$(SRCEXT)
 .PHONY: all remake clean cleaner resources
 
 cleanoutput:
-	-rm -r $(OUTPUTDIR)
+	-rm -f $(OUTPUTDIR)/*.bmp
 
 allclean: cleanoutput cleaner
 	
