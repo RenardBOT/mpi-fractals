@@ -1,4 +1,4 @@
-// Déclaration des entêtes
+// Déclaration des librairies et entêtes
 
 #include <mpi.h>
 #include <stdio.h>
@@ -15,8 +15,6 @@
 // Signatures des fonctions
 
 int main(int argc, char **argv);
-void failure(char * error, int world_rank);
-void warning(char * warning, int world_rank);
 void write_file(parameters_t * parameters, bitmap_rgb * pixels);
 
 
@@ -77,6 +75,7 @@ int main(int argc, char** argv)
         if(parameters->verbose){
             print_parameters(parameters);
             print_parameters_calc(parameters_calc);
+            printf("[ ] \033[1mManager :\033[0m Initialisation terminée, lancement des tâches\n");
         }
 
         MPI_Barrier(MPI_COMM_WORLD);
@@ -109,23 +108,6 @@ int main(int argc, char** argv)
 
     
 }
-
-// 8 - Déclaration des fonctions 
-
-// Affiche un message d'erreur en rouge si le rang de la tâche est 0
-void failure(char * error, int world_rank){
-    if(world_rank == 0)
-        printf("\033[91;1mErreur : \033[0m%s\n\nSortie forcée du programme\n",error);
-    MPI_Finalize();
-    exit(EXIT_FAILURE);
-};
-
-// Affiche un message d'avertissement en jaune si le rang de la tâche est 0
-void warning(char * warning, int world_rank){
-    if(world_rank == 0)
-        printf("\033[93;1mAttention : \033[0m%s\n",warning); 
-};
-
 
 // Définission de l'entête du fichier BMP et écriture du fichier
 void write_file(parameters_t * parameters, bitmap_rgb * pixels){

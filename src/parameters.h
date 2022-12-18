@@ -21,7 +21,8 @@
 #define M_JULIA_IM          .156            // Partie imaginaire du nombre complexe pour la fractale de Julia
 #define M_VERBOSE           0               // Affichage des informations de débuggage en sortie standard
 #define M_PRINT_HELP        0               // Affichage de l'aide en sortie standard
-#define M_FILENAME          "default"        // Nom du fichier de sortie
+#define M_FILENAME          "default"       // Nom du fichier de sortie
+#define M_PROGRESSION       0               // Affichage de la narre de progression en sortie standard
 
 
 // Paramètres limites
@@ -30,11 +31,11 @@
 #define M_MIN_HEIGHT        "20"            // Hauteur minimale de l'image en pixels
 #define M_MAX_HEIGHT        "200000"        // Hauteur maximale de l'image en pixels
 
-#define OPTSTR              "w:h:i:c:x:y:r:p:X:Y:f:"    // Liste des arguments acceptés en ligne de commande 
+#define OPTSTR              "w:h:i:c:x:y:r:p:j:k:f:"    // Liste des arguments acceptés en ligne de commande 
                                                         // (Width,Height,Iterations,Chunks,Origin x y,Range, Palette max
                                                         //  ,Julia X Y,File)
 
-// 3 - Déclaration externes
+// Déclaration externes
 extern int errno;           // Variable stockant les codes d'erreur utilisé par la librairie standard 
 extern char *optarg;        // Variable stockant les arguments des options
 extern int opterr, optind;  // Variables utilisées par getopt (récupération des arguments)
@@ -61,6 +62,7 @@ typedef struct{
     long double julia_im;
     int verbose;
     char* filename;
+    int progression;
     modefract_t modefract;
 } parameters_t;
 

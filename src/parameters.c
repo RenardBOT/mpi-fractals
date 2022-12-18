@@ -20,11 +20,13 @@ void parse_args(int argc, char** argv, parameters_t * parameters, int world_rank
     int flag_verbose = 0;
     int flag_julia = 0;
     int flag_bship = 0;
+    int flag_prog = 0;
     struct option longopts[] = {
     { "help",    no_argument,       &flag_help,     1   },
     { "verbose", no_argument,       &flag_verbose,  1   },
     { "julia",   no_argument,       &flag_julia,    1   },
     { "bship",   no_argument,       &flag_bship,    1   },
+    { "prog",    no_argument,       &flag_prog,     1   },
     { "file",    optional_argument, NULL,           'f' },
     { 0, 0, 0, 0 }
     };
@@ -115,19 +117,19 @@ void parse_args(int argc, char** argv, parameters_t * parameters, int world_rank
                     break;
                 } else
 
-                if(opt == 'X')  {  
+                if(opt == 'j')  {  
                     parameters->julia_re = argfloat;
+                    printf("HERE\n");
                     break;
                 } else
 
-                if(opt == 'Y')  {  
+                if(opt == 'k')  {  
                     parameters->julia_im = -argfloat; // Inversion de l'axe des ordonnées car les images BMP scannent de bas en haut
                     break;
                 } 
 
             // Traitement des strings
             case 'f':
-                printf("File : %s\n",optarg);
                 char *filename = optarg;
                 // Verification que l'agument est un nom de fichier valide
                 if (filename == NULL) {
@@ -137,9 +139,10 @@ void parse_args(int argc, char** argv, parameters_t * parameters, int world_rank
                 break;
     }
     if(flag_help == 1){
-        print_help();
+        if(world_rank == 0)
+            print_help();
         MPI_Finalize();
-        exit(EXIT_SUCCESS);
+        exit(0);
     }
     if(flag_verbose == 1){
         parameters->verbose = 1;
@@ -153,6 +156,10 @@ void parse_args(int argc, char** argv, parameters_t * parameters, int world_rank
     if(flag_bship == 1){
         parameters->modefract = BURNINGSHIP;
     }
+    if(flag_prog == 1){
+        parameters->progression = 1;
+    }
+
 
 }
 
@@ -171,6 +178,7 @@ void init_parameters(parameters_t *parameters){
     parameters->modefract       = M_MODEFRACT;
     parameters->verbose         = M_VERBOSE;
     parameters->filename        = M_FILENAME;
+    parameters->progression     = M_PROGRESSION;
 }
 
 // Calculs en amont des valeurs utilisées plusieurs fois par les workers 
@@ -184,14 +192,15 @@ void init_parameters_calc(parameters_t *parameters, parameters_calc_t *parameter
 
 // Affichage des paramètres pour debug
 void print_parameters(parameters_t * parameters){
-    printf(" --- PARAMETRES ---------\n\n");
-    printf("Dimensions : %dpx * %dpx\n",parameters->width,parameters->height);
-    printf("Origine : %Lf + i*%Lf\n",parameters->origin_re,parameters->origin_im);
-    printf("Intervalle réel : %Lf\n",parameters->range);
-    printf("Nombre d'itérations : %d\n",parameters->max_iterations);
-    printf("Taille d'un bloc de données : %d\n\n",parameters->chunks);
-    printf("Nombre de couleurs : %d\n",parameters->max_palette);
-    printf("Nom du fichier : %s\n",parameters->filename);
+    printf("   .____________________.\n");
+    printf("___| PARAMETRES DE BASE |__________\n\n");
+    printf("| Dimensions : %dpx * %dpx\n",parameters->width,parameters->height);
+    printf("| Origine : %Lf + i*%Lf\n",parameters->origin_re,parameters->origin_im);
+    printf("| Intervalle réel : %Lf\n",parameters->range);
+    printf("| Nombre d'itérations : %d\n",parameters->max_iterations);
+    printf("|Taille d'un bloc de données : %d\n\n",parameters->chunks);
+    printf("| Nombre de couleurs : %d\n",parameters->max_palette);
+    printf("| Nom du fichier : %s\n",parameters->filename);
 
     switch(parameters->modefract){
         case MANDELBROT:
@@ -221,17 +230,16 @@ void print_parameters_calc(parameters_calc_t * parameters_calc){
     printf("\n\n");
 }
 
-// print en gras
-void print_bold(char *str){
-    printf("\033[1m%s\033[0m",str);
-}
+
+// Affichage de l'aide dans le terminal
 void print_help(){
     printf(" --- AIDE ---------\n\n");
-    printf("Utilisation : mpiexec -np <nb_noeuds> ./fractale [OPTIONS]\n\n");
+    printf("Utilisation : mpiexec -np <nb_noeuds> bin/mandelbrot [OPTIONS]\n\n");
 
     printf("OPTIONS :\n");
     printf("\033[1m--help :\033[0m Affiche l'aide\n");
-    printf("\033[1m--verbose :\033[0m Affiche le déroulement du programme, temps d'execution et les paramètres choisis\n");
+    printf("\033[1m--verbose :\033[0m Affiche le déroulement du programme et paramètres\n");
+    printf("\033[1m--prog :\033[0m Affiche une barre de progression\n");
     printf("\033[1m--julia :\033[0m Affiche les fractales de Julia\n");
     printf("\033[1m--bship :\033[0m Affiche la fractale Burning Ship\n");
     printf("\033[1m--file=<filename> :\033[0m Enregistre l'image dans le fichier <filename>.bmp du répertoire output\n");
@@ -240,12 +248,13 @@ void print_help(){
     printf("\033[1m-c :\033[0m Taille d'un bloc de données, c'est à dire le nombre de lignes de l'image à traiter d'un coup pour un worker\n");
     printf("\033[1m-r :\033[0m Intervalle de l'espace solution sur l'axe de réels (niveau de zoom)\n");
     printf("\033[1m-x -y :\033[0m Origine complexe (x + i*y)\n");
-    printf("\033[1m-X -Y :\033[0m Constante de Julia (x + i*y)\n");
+    printf("\033[1m-j -k :\033[0m Constante de Julia (x + i*y)\n");
     printf("\033[1m-p :\033[0m Nombre de couleurs, largeur de la palette\n");
 
     printf("VALEURS PAR DEFAUT :\n");
     printf("\033[1m--help :\033[0m 0\n");
     printf("\033[1m--verbose :\033[0m 0\n");
+    printf("\033[1m--prog :\033[0m 0\n");
     printf("\033[1m--julia :\033[0m 0\n");
     printf("\033[1m--bship :\033[0m 0\n");
     printf("\033[1m--file=<filename> :\033[0m <julia|mandelbrot|bship>_timestamp.bmp\n");
@@ -254,10 +263,15 @@ void print_help(){
     printf("\033[1m-c :\033[0m %d\n",M_CHUNKS);
     printf("\033[1m-r :\033[0m %d\n",M_RANGE);
     printf("\033[1m-x -y :\033[0m %f + i*%f\n",M_ORIGIN_RE,M_ORIGIN_IM);
-    printf("\033[1m-X -Y :\033[0m %f + i*%f\n",M_JULIA_RE,M_JULIA_IM);
+    printf("\033[1m-j -k :\033[0m %f + i*%f\n",M_JULIA_RE,M_JULIA_IM);
     printf("\033[1m-p :\033[0m %d\n",M_MAX_PALETTE);
-
-
-    
     printf("\n\n");
 }
+
+// Affiche un message d'erreur en rouge si le rang de la tâche est 0
+void failure(char * error, int world_rank){
+    if(world_rank == 0)
+        printf("\033[91;1mErreur : \033[0m%s\n\nSortie forcée du programme\n",error);
+    MPI_Finalize();
+    exit(EXIT_FAILURE);
+};

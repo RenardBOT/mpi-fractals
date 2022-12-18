@@ -1,4 +1,4 @@
-# CREDITS: Nicholas Hamilton, Scot McPeak, and the Makefile Tutorial
+# CREDITS: Nicholas Hamilton, Scot McPeak, et en particulier le tutoriel Makefile
 # Version modifiée du Makefile partagé par Nicholas Hamilton, lui même modifié de Scot McPeak : https://stackoverflow.com/a/27794283
 
 # Compilateur: MPICC
@@ -7,7 +7,7 @@ CC          := mpicc
 # Le nom de l'exécutable
 TARGET      := mandelbrot
 
-# Les fichiers sources, les fichiers d'entête, les fichiers objets, les fichiers binaires et les ressources s'il y en a
+# Les répertoires des fichiers sources, fichiers d'entête, fichiers objets, fichiers binaires et les ressources s'il y en a
 SRCDIR      := src
 INCDIR      := inc
 BUILDDIR    := obj
@@ -17,8 +17,7 @@ SRCEXT      := c
 DEPEXT      := d
 OBJEXT      := o
 
-# Specifique au projet
-
+# Specifique au projet, le dossier de sortie des images
 OUTPUTDIR   := output
 
 # Les options de compilation, les librairies et les dossiers d'inclusion
@@ -31,7 +30,7 @@ INCDEP      := -I$(INCDIR)
 default: $(TARGET)
 
 #---------------------------------------------------------------------------------
-# A NE PAS MODIFIER (sinon tout explose)
+# A NE PAS MODIFIER (sinon tout explose et tout le monde meurt (non, pas vraiment)))
 #---------------------------------------------------------------------------------
 SOURCES     := $(shell find $(SRCDIR) -type f -name *.$(SRCEXT))
 OBJECTS     := $(patsubst $(SRCDIR)/%,$(BUILDDIR)/%,$(SOURCES:.$(SRCEXT)=.$(OBJEXT)))
@@ -63,7 +62,7 @@ cleaner:	clean
 $(TARGET): $(OBJECTS)
 	$(CC) -o $(TARGETDIR)/$(TARGET) $^ $(LIB)
 
-# Création des fichiers objets
+# Création des fichiers objets et en particulier des fichiers de dépendance
 $(BUILDDIR)/%.$(OBJEXT): $(SRCDIR)/%.$(SRCEXT)
 	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) $(INC) -c -o $@ $<

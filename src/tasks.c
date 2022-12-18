@@ -59,7 +59,7 @@ void manager_task(parameters_t *parameters, MPI_Comm comm, bitmap_rgb *pixels){
         }
 
         // Affichage d'une barre de progression en fonction du pourcentage de données reçues
-        if(parameters->verbose){
+        if(parameters->progression){
             printf("[ ] \033[1mManager :\033[0m Réception . . . [");
             for(int i = 0; i < (int) (amount_received*100.0/chunks_to_receive)/2; i++){
                 printf("=");
